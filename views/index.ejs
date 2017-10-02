@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-COMPATIBLE" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="icon" href="/icon.png">
+  <title>首页</title>
+  <link rel='stylesheet' href='/stylesheets/style.css'/>
+  <link href="/stylesheets/bootstrap.css" rel="stylesheet" type="text/css">
+  <script src="/javascripts/jquery-3.2.1.min.js" type="text/javascript"></script>
+  <script src="/javascripts/bootstrap.min.js" type="text/javascript"></script>
+  <script src="/javascripts/underscore-noflect.js" type="text/javascript"></script>
+  <style>
+    .con {
+      width: 500px;
+      height: 300px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+<% include header.ejs %>
+<div class="jumbotron">
+  <% if(!users){ %>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-6">
+        <h1>欢迎!</h1>
+        <p>blog 是node.js做的一个博客项目,请注册登录</p>
+        <p><a class="btn btn-primary btn-lg" href="/register" role="button">注册</a></p>
+      </div>
+      <div class="col-lg-6">
+        <p>已有账号,去登陆吧!</p>
+        <form method="post" action="/login">
+          <div class="form-group">
+            <label for="username">用户名</label>
+            <input type="text" name="username" class="form-control" id="username" placeholder="请输入你的用户名,不能为空">
+          </div>
+          <div class="form-group">
+            <label for="password">密码</label>
+            <input type="password" name="password" class="form-control" id="password" placeholder="请输入你的密码,至少要六位">
+          </div>
+          <div class="checkbox">
+            <label for="check">
+              <input type="checkbox" checked id="check"> 我接受用户协议
+            </label>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-default">登录</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!--存在users-->
+  <% } else{ %>
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-1">
+        <a href="/users/setavatar"><img src="<%= users[0].avatar %>"></a>
+      </div>
+      <div class="col-lg-6 col-lg-offset-3">
+        <p><%= users[0].username %></p>
+        <!--<% for(var i = 0;i < logincontents.length;i++){ %>-->
+        <!--<p><%= logincontents[i].content %></p>-->
+        <!--<a href="javascript:voice(0)" id=<%= logincontents[i]._id %>>删除</a>-->
+
+        <!--<% } %>-->
+
+        <textarea name="content" id="content" cols="100" rows="8"></textarea>
+        <button type="button" id="posts" class="btn btn-success">发表内容</button>
+      </div>
+    </div>
+  </div>
+  <% } %>
+</div>
+<div class="jumbotron" style="margin-top: 48px;height: 1200px;width: 1800px">
+  <div class="container">
+    <nav>
+      <ul class="pagination">
+
+      </ul>
+    </nav>
+  </div>
+  <div class="container">
+    <div class="row" id="div">
+
+    </div>
+  </div>
+</div>
+</body>
+<script type="text/template" id="moban">
+  <div class="col-lg-4 grid con">
+    <h2><img width="40" height="40" class="avatar" src="{{=obj.avatar}}" alt="...">{{=obj.username}}说:</h2>
+    <p>{{=obj.content}}</p>
+    <p>{{=obj.time}}</p>
+    <p><a class="btn btn-default">查看详细</a></p>
+  </div>
+</script>
+
+<script type="text/javascript">
+  $(function () {
+    //发表内容ajax请求
+    $('#posts').click(function () {
+      var content = $('#content').val();
+      $.post("/users/posts", {"content": content}, function (data, status) {
+        if (data == "1") {
+          alert('发表成功');
+          window.location = "/";
+        } else {
+          alert('发表失败,请联系客服');
+        }
+      });
+    });
+    //请求所有的留言 ajax
+    //得到模板
+    var compiled = _.template($('#moban').html())
+    getpage(0);
+
+    function getpage(page) {
+      //清空页面
+      $('#div').html("");
+      $.ajax({
+        "url": "/getallcontent?page=" + page,
+        "type": 'get',
+        "success": function (r) {
+          interator(0);
+          function interator(i) {
+            if (i == r.r.length) {
+              return;
+            }
+            $.get('/getuseravatar?username=' + r.r[i].username, function (avatar) {
+              //修改数据项,给数据项强加一个avatar
+              r.r[i].avatar = avatar.avatar;
+              var html = compiled(r.r[i]);//@@@@
+              $('#div').append(html);
+              interator(i + 1);
+            })
+          }
+
+        }
+      });
+    }
+
+    $.get('/getallcount', function (r) {
+      var amount = parseInt(r);
+      //总页数
+      var pageAmount = Math.ceil(amount / 6);
+      for (var i = 0; i < pageAmount; i++) {
+        $('.pagination').append("<li><a href='javascript:void(0)'>" + i + "</a></li>");
+      }
+      $('.pagination:first').addClass('active');
+      $('.pagination li').click(function () {
+        var page = $(this).index();
+        getpage(page);
+        $('this').addClass('active').siblings().removeClass('active');
+      })
+    });
+
+  })
+</script>
+</html>
