@@ -15,7 +15,6 @@ function __connectdb(callback) {
            return;
        }
        callback(null,db);
-        //db.close(),  当我回调完之后,就吧数据库连接关闭,我只后的增删操作都会失败
     });
 }
 
@@ -41,7 +40,7 @@ exports.insertMany=function (collectionName,json,callback) {
 };
 
 //查找数据  json一个已经写好json格式
-//类似于c++函数重载方法 
+//类似于c++函数重载方法
 exports.find=function (collectionName,json,C,D) {
     if (arguments.length==3){
         var callback=C;
@@ -90,7 +89,7 @@ exports.find=function (collectionName,json,C,D) {
               db.close();
           }
       })
-  })  
+  })
 };
 
 //删除
@@ -161,6 +160,6 @@ function studentScore(name,number,kecheng) {
     number=this.number;
 }
 studentScore.insert=function () {
-    
+
 };
 module.exports=studentScore;*/
