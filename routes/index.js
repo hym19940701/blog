@@ -13,7 +13,6 @@ router.get('/', function(req, res, next) {
               console.log(err);
               return;
           }else{
-              console.log(r[1].content);
               res.render('index', {"active":"index","users":req.session.users,"logincontents":r});
           }
 
